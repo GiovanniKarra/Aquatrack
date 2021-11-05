@@ -59,10 +59,9 @@ M = 1 + 2 / 5 * r ** 2 / h ** 2  # coefficient d'inertie [1]
 tSim[0] = 0
 sSim[0] = 0
 VsSim[0] = 0
-i = 0
 
 # boucle de simulation:
-while i < steps:
+for i in range(steps):
     x = np.interp(sSim[i], sPath, xPath)
     p = 2 * A * x  # pente dz/dx
     cos_beta = 1 / np.sqrt(1 + p * p)
@@ -74,9 +73,6 @@ while i < steps:
     VsSim[i + 1] = VsSim[i] + As * dt
     sSim[i + 1] = sSim[i] + VsSim[i + 1] * dt
     tSim[i + 1] = tSim[i] + dt
-    i += 1
-
-
 zSim = np.interp(sSim, sPath, zPath)
 
 # plot distance et vitesse et hauteur
