@@ -98,8 +98,7 @@ def ainterp(x, xp, ap, **kwargs):
         a: array[K] ou array[K, M]
             ordonnées évaluées f_k(x_m)
     """
-    a = np.array([np.interp(x, xp, fp, **kwargs) for fp in ap])
-    return a
+    return np.array([np.interp(x, xp, fp, **kwargs) for fp in ap])
 
 
 def path_at(s, path, **kwargs):
