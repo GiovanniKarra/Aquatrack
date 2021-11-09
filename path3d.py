@@ -189,7 +189,7 @@ def looping_points(steps=21):
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
-    # from mpl_toolkits.mplot3d import Axes3D
+    from mpl_toolkits.mplot3d import Axes3D
 
     # points de passage
     xyzPoints = looping_points()

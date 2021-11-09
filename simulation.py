@@ -20,7 +20,7 @@ sPath, xyzPath, tPath, cPath = p3d.path(xyzPoints)
 
 # paramètres pour la simulation:
 tEnd = 10  # durée de la simulation [s]
-dt = 0.033333333333333326  # pas de la simulation [s]
+dt = 0.033333333333333333333333333333333  # pas de la simulation [s]
 
 steps = int(tEnd / dt)  # nombre de pas de la simulation
 tSim = np.zeros(steps + 1)  # temps: array[steps+1] * [s]
@@ -32,16 +32,44 @@ tSim[0] = 0
 sSim[0] = 0
 VsSim[0] = 0
 
+xyzMarks = np.empty((3, steps))
+tMarks = np.empty((3, steps))
+cMarks = np.empty((3, steps))
+
 # boucle de simulation:
 for i in range(steps):
+    path = p3d.path_at(sSim[i], (sPath, xyzPath, tPath, cPath))
+
+    tan = path[1]
+    norm = path[2]
+    alpha = np.abs(np.arctan(tan[1]/tan[0]))
+
+    gn = (g * np.cos(alpha)) * -norm
+    gs = g * np.sin(alpha)
+    Gn = np.linalg.norm(VsSim[i] ** 2 * norm - gn)
+
+    As = (gs - e1 * VsSim[i]/h * Gn) / (1 + 2/5 * (r ** 2 / h ** 2))
+
+    VsSim[i + 1] = VsSim[i] + As * dt
+    sSim[i + 1] = sSim[i] + VsSim[i + 1] * dt
+    tSim[i + 1] = tSim[i] + dt
+
     xyz = p3d.ainterp(sSim[i], sPath, xyzPath)
-    # p = 2 * A * x  # pente dz/dx
-    # cos_beta = 1 / np.sqrt(1 + p * p)
-    # sin_beta = p / np.sqrt(1 + p * p)
-    # c = 2 * A / (1 + p * p) ** 1.5  # courbure
+    xyzMarks[:, i] = xyz
+    cMarks[:, i] = gn
+    tMarks[:, i] = VsSim[i] ** 2 * norm - gn
 
-    # As = (-g * sin_beta - e1 * VsSim[i] / h * (g * cos_beta + c * VsSim[i] ** 2)) / M
-
-    # VsSim[i + 1] = VsSim[i] + As * dt
-    # sSim[i + 1] = sSim[i] + VsSim[i + 1] * dt
-    # tSim[i + 1] = tSim[i] + dt
+fig = plt.figure()
+ax = fig.add_subplot(projection='3d')
+ax.set_box_aspect(np.ptp(xyzPath, axis=1))
+ax.plot(xyzPoints[0], xyzPoints[1], xyzPoints[2], 'bo', label='points')
+ax.plot(xyzPath[0], xyzPath[1], xyzPath[2], 'k-', lw=0.5, label='path')
+scale = 0.1 * sPath[-1] / steps
+ax.quiver(xyzMarks[0], xyzMarks[1], xyzMarks[2],
+          scale * tMarks[0], scale * tMarks[1], scale * tMarks[2],
+          color='r', linewidth=0.5, label='T')
+ax.quiver(xyzMarks[0], xyzMarks[1], xyzMarks[2],
+          scale * cMarks[0], scale * cMarks[1], scale * cMarks[2],
+          color='g', linewidth=0.5, label='C')
+ax.legend()
+plt.show()
