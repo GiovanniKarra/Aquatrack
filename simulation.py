@@ -44,7 +44,7 @@ for i in range(steps):
     norm = path[2]
     alpha = np.abs(np.arctan(tan[1]/tan[0]))
 
-    gn = (g * np.cos(alpha)) * -norm
+    gn = (g * np.cos(alpha)) * -np.abs(norm)
     gs = g * np.sin(alpha)
     Gn = np.linalg.norm(VsSim[i] ** 2 * norm - gn)
 
@@ -57,19 +57,19 @@ for i in range(steps):
     xyz = p3d.ainterp(sSim[i], sPath, xyzPath)
     xyzMarks[:, i] = xyz
     cMarks[:, i] = gn
-    tMarks[:, i] = VsSim[i] ** 2 * norm - gn
+    tMarks[:, i] = gs * tan
 
 fig = plt.figure()
 ax = fig.add_subplot(projection='3d')
 ax.set_box_aspect(np.ptp(xyzPath, axis=1))
 ax.plot(xyzPoints[0], xyzPoints[1], xyzPoints[2], 'bo', label='points')
 ax.plot(xyzPath[0], xyzPath[1], xyzPath[2], 'k-', lw=0.5, label='path')
-scale = 0.1 * sPath[-1] / steps
+scale = 0.5 * sPath[-1] / steps
 ax.quiver(xyzMarks[0], xyzMarks[1], xyzMarks[2],
           scale * tMarks[0], scale * tMarks[1], scale * tMarks[2],
           color='r', linewidth=0.5, label='T')
 ax.quiver(xyzMarks[0], xyzMarks[1], xyzMarks[2],
-          scale * cMarks[0], scale * cMarks[1], scale * cMarks[2],
+          scale * 0.2 * cMarks[0], scale * 0.2 * cMarks[1], scale * 0.2 * cMarks[2],
           color='g', linewidth=0.5, label='C')
 ax.legend()
 plt.show()
