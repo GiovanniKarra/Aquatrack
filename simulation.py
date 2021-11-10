@@ -15,12 +15,13 @@ h = np.sqrt(r ** 2 - b ** 2 / 4)  # hauteur du centre de la bille sur les rails 
 e1 = 0.001
 
 # chemin de la bille (et autres paramètres)
+# xyzPoints = np.loadtxt("test.txt", unpack=True)
 xyzPoints = np.loadtxt("looping_points.txt", unpack=True)
 sPath, xyzPath, tPath, cPath = p3d.path(xyzPoints)
 
 # paramètres pour la simulation:
-tEnd = 10  # durée de la simulation [s]
-dt = 0.033333333333333333333333333333333  # pas de la simulation [s]
+tEnd = 20  # durée de la simulation [s]
+dt = 0.01  # pas de la simulation [s]
 
 steps = int(tEnd / dt)  # nombre de pas de la simulation
 tSim = np.zeros(steps + 1)  # temps: array[steps+1] * [s]
@@ -42,13 +43,13 @@ for i in range(steps):
 
     tan = path[1]
     norm = path[2]
-    alpha = np.abs(np.arctan(tan[1]/tan[0]))
 
-    gn = (g * np.cos(alpha)) * -np.abs(norm)
-    gs = g * np.sin(alpha)
-    Gn = np.linalg.norm(VsSim[i] ** 2 * norm - gn)
+    gs = (-g * tan[2]) * tan
+    gn = np.array((0, 0, -g)) - gs
+    Gn = VsSim[i] ** 2 * norm - gn
 
-    As = (gs - e1 * VsSim[i]/h * Gn) / (1 + 2/5 * (r ** 2 / h ** 2))
+    As = (np.linalg.norm(gs) - e1 * (VsSim[i]/h) * np.linalg.norm(Gn)) / (1 + 2/5 * (r ** 2 / h ** 2))
+    print(f"{sSim[i] = }")
 
     VsSim[i + 1] = VsSim[i] + As * dt
     sSim[i + 1] = sSim[i] + VsSim[i + 1] * dt
@@ -57,19 +58,19 @@ for i in range(steps):
     xyz = p3d.ainterp(sSim[i], sPath, xyzPath)
     xyzMarks[:, i] = xyz
     cMarks[:, i] = gn
-    tMarks[:, i] = gs * tan
+    tMarks[:, i] = gs
 
 fig = plt.figure()
 ax = fig.add_subplot(projection='3d')
 ax.set_box_aspect(np.ptp(xyzPath, axis=1))
 ax.plot(xyzPoints[0], xyzPoints[1], xyzPoints[2], 'bo', label='points')
 ax.plot(xyzPath[0], xyzPath[1], xyzPath[2], 'k-', lw=0.5, label='path')
-scale = 0.5 * sPath[-1] / steps
+scale = 2 * sPath[-1] / steps
 ax.quiver(xyzMarks[0], xyzMarks[1], xyzMarks[2],
           scale * tMarks[0], scale * tMarks[1], scale * tMarks[2],
           color='r', linewidth=0.5, label='T')
 ax.quiver(xyzMarks[0], xyzMarks[1], xyzMarks[2],
-          scale * 0.2 * cMarks[0], scale * 0.2 * cMarks[1], scale * 0.2 * cMarks[2],
+          scale * cMarks[0], scale * cMarks[1], scale * cMarks[2],
           color='g', linewidth=0.5, label='C')
 ax.legend()
 plt.show()
