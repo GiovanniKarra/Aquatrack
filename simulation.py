@@ -12,7 +12,7 @@ h = np.sqrt(r ** 2 - b ** 2 / 4)  # hauteur du centre de la bille sur les rails 
 # e1 = 0.001270193299685568  # coefficient de frottement linéaire [m/(m/s)]
 # e1 = 0.000995637359264194
 # e1 = 0.00024985386042669975
-e1 = 0.001
+e1 = 0.01
 
 # chemin de la bille (et autres paramètres)
 # xyzPoints = np.loadtxt("test.txt", unpack=True)
@@ -49,7 +49,7 @@ for i in range(steps):
     Gn = VsSim[i] ** 2 * norm - gn
 
     As = (np.linalg.norm(gs) - e1 * (VsSim[i]/h) * np.linalg.norm(Gn)) / (1 + 2/5 * (r ** 2 / h ** 2))
-    print(f"{sSim[i] = }")
+    print(f"{path[0] if As < 0 else ''}")
 
     VsSim[i + 1] = VsSim[i] + As * dt
     sSim[i + 1] = sSim[i] + VsSim[i + 1] * dt
@@ -57,7 +57,7 @@ for i in range(steps):
 
     xyz = p3d.ainterp(sSim[i], sPath, xyzPath)
     xyzMarks[:, i] = xyz
-    cMarks[:, i] = gn
+    cMarks[:, i] = Gn
     tMarks[:, i] = gs
 
 fig = plt.figure()
