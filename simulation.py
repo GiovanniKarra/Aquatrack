@@ -16,12 +16,13 @@ m = 0.016  # masse de la bille
 e1 = 0.01
 
 # chemin de la bille (et autres paramètres)
+# xyzPoints = np.loadtxt("looping_points.txt", unpack=True)
 xyzPoints = np.loadtxt("points_de_passage.txt", unpack=True)
 sPath, xyzPath, tPath, cPath = p3d.path(xyzPoints)
 
 # paramètres pour la simulation:
 tEnd = 100  # durée de la simulation [s]
-dt = 0.01  # pas de la simulation [s]
+dt = 0.3333333333333  # pas de la simulation [s]
 
 steps = int(tEnd / dt)  # nombre de pas de la simulation
 tSim = np.zeros(steps + 1)  # temps: array[steps+1] * [s]
