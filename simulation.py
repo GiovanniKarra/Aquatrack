@@ -21,8 +21,8 @@ xyzPoints = np.loadtxt("points_de_passage.txt", unpack=True)
 sPath, xyzPath, tPath, cPath = p3d.path(xyzPoints)
 
 # paramètres pour la simulation:
-tEnd = 100  # durée de la simulation [s]
-dt = 0.3333333333333  # pas de la simulation [s]
+tEnd = 60  # durée de la simulation [s]
+dt = 0.3333333333  # pas de la simulation [s]
 
 steps = int(tEnd / dt)  # nombre de pas de la simulation
 tSim = np.zeros(steps + 1)  # temps: array[steps+1] * [s]
@@ -39,6 +39,8 @@ xyzMarks = np.empty((3, steps))
 tMarks = np.empty((3, steps))
 cMarks = np.empty((3, steps))
 
+M = 1 + 2 / 5 * r ** 2 / h ** 2  # coefficient d'inertie [1]
+
 # boucle de simulation:
 for i in range(steps):
     path = p3d.path_at(sSim[i], (sPath, xyzPath, tPath, cPath))
@@ -46,11 +48,13 @@ for i in range(steps):
     tan = path[1]
     norm = path[2]
 
-    gs = (-g * tan[2]) * tan
-    gn = np.array((0, 0, -g)) - gs
+    gs = -g * tan[2]
+    gs_vector = gs * tan
+    gn = np.array((0, 0, -g)) - gs_vector
     Gn = VsSim[i] ** 2 * norm - gn
 
-    As = (np.linalg.norm(gs) - e1 * (VsSim[i]/h) * np.linalg.norm(Gn)) / (1 + 2/5 * (r ** 2 / h ** 2))
+    As = (gs - e1 * (VsSim[i]/h) * np.linalg.norm(Gn)) / M
+    print(f"{gs}")
 
     VsSim[i + 1] = VsSim[i] + As * dt
     sSim[i + 1] = sSim[i] + VsSim[i + 1] * dt
@@ -59,11 +63,10 @@ for i in range(steps):
     xyz = p3d.ainterp(sSim[i], sPath, xyzPath)
     xyzMarks[:, i] = xyz
     cMarks[:, i] = Gn
-    tMarks[:, i] = gs
+    tMarks[:, i] = gs_vector
 
     zSim[i] = xyz[2]
 
-M = 1 + 2 / 5 * r ** 2 / h ** 2  # coefficient d'inertie [1]
 
 EpSim = g * zSim  # énergie potentielle spécifique [m**2/s**2]
 EkSim = 0.5 * M * VsSim ** 2  # énergie cinétique spécifique [m**2/s**2]
@@ -83,7 +86,7 @@ ax = fig.add_subplot(projection='3d')
 ax.set_box_aspect(np.ptp(xyzPath, axis=1))
 ax.plot(xyzPoints[0], xyzPoints[1], xyzPoints[2], 'bo', label='points')
 ax.plot(xyzPath[0], xyzPath[1], xyzPath[2], 'k-', lw=0.5, label='path')
-scale = 2 * sPath[-1] / steps
+scale = 0.9 * sPath[-1] / steps
 ax.quiver(xyzMarks[0], xyzMarks[1], xyzMarks[2],
           scale * tMarks[0], scale * tMarks[1], scale * tMarks[2],
           color='r', linewidth=0.5, label='gs')
