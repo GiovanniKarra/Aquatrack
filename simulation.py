@@ -16,8 +16,8 @@ m = 0.016  # masse de la bille
 e1 = 0.01
 
 # chemin de la bille (et autres paramètres)
-# xyzPoints = np.loadtxt("looping_points.txt", unpack=True)
-xyzPoints = np.loadtxt("points_de_passage.txt", unpack=True)
+xyzPoints = np.loadtxt("looping_points.txt", unpack=True)
+# xyzPoints = np.loadtxt("points_de_passage.txt", unpack=True)
 sPath, xyzPath, tPath, cPath = p3d.path(xyzPoints)
 
 # paramètres pour la simulation:
@@ -28,13 +28,15 @@ steps = int(tEnd / dt)  # nombre de pas de la simulation
 tSim = np.zeros(steps + 1)  # temps: array[steps+1] * [s]
 sSim = np.zeros(steps + 1)  # distance curviligne: array[steps+1] * [m]
 VsSim = np.zeros(steps + 1)  # vitesse tangentielle: array[steps+1] * [m/s]
-zSim = np.zeros(steps + 1)
+zSim = np.zeros(steps + 1)  # coordonnée z des points de la simulation
 
 # valeurs initiales:
 tSim[0] = 0
 sSim[0] = 0
 VsSim[0] = 0
 
+# matries 3 x steps qui stockent les composantes des coordonnées,
+# vecteurs tangents et vecteurs normales des points de la simulation
 xyzMarks = np.empty((3, steps))
 tMarks = np.empty((3, steps))
 cMarks = np.empty((3, steps))
@@ -43,22 +45,23 @@ M = 1 + 2 / 5 * r ** 2 / h ** 2  # coefficient d'inertie [1]
 
 # boucle de simulation:
 for i in range(steps):
+    # tuple sous la forme (coordonnées, vecteur tangent, vecteur normal)
+    # en fonction de l'abscisse curviligne du circuit
     path = p3d.path_at(sSim[i], (sPath, xyzPath, tPath, cPath))
 
-    tan = path[1]
-    norm = path[2]
+    tan = path[1]  # vecteur tangent
+    norm = path[2]  # vecteur normal
 
-    gs = -g * tan[2]
-    gs_vector = gs * tan
-    gn = np.array((0, 0, -g)) - gs_vector
+    gs = -g * tan[2]  # norme de l'accélération gravitationnelle tangentielle
+    gs_vector = gs * tan  # vecteur g_s
+    gn = np.array((0, 0, -g)) - gs_vector  # vecteur de l'accélération gravitationnelle normale
     Gn = VsSim[i] ** 2 * norm - gn
 
-    As = (gs - e1 * (VsSim[i]/h) * np.linalg.norm(Gn)) / M
-    print(f"{gs}")
+    As = (gs - e1 * (VsSim[i]/h) * np.linalg.norm(Gn)) / M  # accélération curviligne
 
-    VsSim[i + 1] = VsSim[i] + As * dt
-    sSim[i + 1] = sSim[i] + VsSim[i + 1] * dt
-    tSim[i + 1] = tSim[i] + dt
+    VsSim[i + 1] = VsSim[i] + As * dt  # on varie la vitesse curviligne suivante selon l'accélération
+    sSim[i + 1] = sSim[i] + VsSim[i + 1] * dt  # on varie la position curviligne suivante selon la vitesse
+    tSim[i + 1] = tSim[i] + dt  # on varie le temps t suivant selon dt
 
     xyz = p3d.ainterp(sSim[i], sPath, xyzPath)
     xyzMarks[:, i] = xyz
@@ -66,6 +69,11 @@ for i in range(steps):
     tMarks[:, i] = gs_vector
 
     zSim[i] = xyz[2]
+
+    if sSim[i] >= sPath[-1]:
+        sSim[i:] = sSim[i]
+        VsSim[i:] = VsSim[i]
+        tSim[i:] = tSim[i]
 
 
 EpSim = g * zSim  # énergie potentielle spécifique [m**2/s**2]
