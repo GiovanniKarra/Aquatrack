@@ -3,6 +3,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+"""
+
+
+SIMULATION
+
+
+"""
+
+
 # Paramètres physiques:
 g = 9.81  # accélération de gravitation [m/s**2]
 b = 0.01  # écart des rails [m]
@@ -16,8 +25,8 @@ m = 0.016  # masse de la bille
 e1 = 0.01
 
 # chemin de la bille (et autres paramètres)
-xyzPoints = np.loadtxt("looping_points.txt", unpack=True)
-# xyzPoints = np.loadtxt("points_de_passage.txt", unpack=True)
+# xyzPoints = np.loadtxt("looping_points.txt", unpack=True)
+xyzPoints = np.loadtxt("points_de_passage.txt", unpack=True)
 sPath, xyzPath, tPath, cPath = p3d.path(xyzPoints)
 
 # paramètres pour la simulation:
@@ -57,12 +66,13 @@ for i in range(steps):
     gn = np.array((0, 0, -g)) - gs_vector  # vecteur de l'accélération gravitationnelle normale
     Gn = VsSim[i] ** 2 * norm - gn
 
-    As = (gs - e1 * (VsSim[i]/h) * np.linalg.norm(Gn)) / M  # accélération curviligne
+    As = (gs - e1 * (VsSim[i] / h) * np.linalg.norm(Gn)) / M  # accélération curviligne
 
     VsSim[i + 1] = VsSim[i] + As * dt  # on varie la vitesse curviligne suivante selon l'accélération
     sSim[i + 1] = sSim[i] + VsSim[i + 1] * dt  # on varie la position curviligne suivante selon la vitesse
     tSim[i + 1] = tSim[i] + dt  # on varie le temps t suivant selon dt
 
+    # variables utilisés pour le graphique (coordonnées, vecteurs, etc.)
     xyz = p3d.ainterp(sSim[i], sPath, xyzPath)
     xyzMarks[:, i] = xyz
     cMarks[:, i] = Gn
@@ -70,14 +80,24 @@ for i in range(steps):
 
     zSim[i] = xyz[2]
 
+    # si la bille dépasse le circuit, on met la même valeur aux itérations restantes
     if sSim[i] >= sPath[-1]:
         sSim[i:] = sSim[i]
         VsSim[i:] = VsSim[i]
         tSim[i:] = tSim[i]
 
-
 EpSim = g * zSim  # énergie potentielle spécifique [m**2/s**2]
 EkSim = 0.5 * M * VsSim ** 2  # énergie cinétique spécifique [m**2/s**2]
+
+
+"""
+
+
+DESSIN DES DIFFÉRENTS GRAPHIQUES
+
+
+"""
+
 
 # plot énergies
 plt.figure()
