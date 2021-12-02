@@ -30,8 +30,8 @@ xyzPoints = np.loadtxt("points_de_passage.txt", unpack=True)
 sPath, xyzPath, tPath, cPath = p3d.path(xyzPoints)
 
 # paramètres pour la simulation:
-tEnd = 60  # durée de la simulation [s]
-dt = 0.3333333333  # pas de la simulation [s]
+tEnd = 10  # durée de la simulation [s]
+dt = 0.1  # pas de la simulation [s]
 
 steps = int(tEnd / dt)  # nombre de pas de la simulation
 tSim = np.zeros(steps + 1)  # temps: array[steps+1] * [s]
@@ -82,11 +82,12 @@ for i in range(steps):
 
     # si la bille dépasse le circuit, on met la même valeur aux itérations restantes
     if sSim[i] >= sPath[-1]:
+        print(tSim[i])
         sSim[i:] = sSim[i]
         VsSim[i:] = VsSim[i]
         tSim[i:] = tSim[i]
 
-EpSim = g * zSim  # énergie potentielle spécifique [m**2/s**2]
+EpSim = g * (zSim + 0.070)  # énergie potentielle spécifique [m**2/s**2]
 EkSim = 0.5 * M * VsSim ** 2  # énergie cinétique spécifique [m**2/s**2]
 
 
