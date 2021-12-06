@@ -1,6 +1,6 @@
-import path3d as p3d
-import numpy as np
-import matplotlib.pyplot as plt
+import path3d as p3d             # sert à construire le circuit numériquement
+import numpy as np               # sert à faire des calcules plus efficacement, surtout avec les vecteurs et matrices
+import matplotlib.pyplot as plt  # sert à faire des graphiques avec nos données
 
 
 """
@@ -13,35 +13,41 @@ SIMULATION
 
 
 # Paramètres physiques:
-g = 9.81  # accélération de gravitation [m/s**2]
-b = 0.01  # écart des rails [m]
+m = 0.016      # masse de la bille
+g = 9.81       # accélération de gravitation [m/s**2]
+b = 0.01       # écart des rails [m]
 r = 0.0079375  # rayon de la bille [m]
 h = np.sqrt(r ** 2 - b ** 2 / 4)  # hauteur du centre de la bille sur les rails [m]
-m = 0.016  # masse de la bille
 
 e1 = 0.000575  # coefficient de frottement linéaire [m/(m/s)]
 
-# chemin de la bille (et autres paramètres)
-xyzPoints = np.loadtxt("points_de_passage.txt", unpack=True)  # à détailler
+# charge les points de passage en tant que matrice (3 x nombre de points)
+xyzPoints = np.loadtxt("points_de_passage.txt", unpack=True)
+
+# réalise une interpolation des points de passage pour donner...
+# sPath : array des abscisses curvilignes
+# xyzPath : coordonnées en 3 dimensions
+# tPath : vecteur unitaire tangent à chaque point
+# cPath : vecteur unitaire normal à chaque point
 sPath, xyzPath, tPath, cPath = p3d.path(xyzPoints)
 
 # paramètres pour la simulation:
 tEnd = 6  # durée de la simulation [s]
 dt = 0.1  # pas de la simulation [s]
 
-steps = int(tEnd / dt)  # nombre de pas de la simulation
-tSim = np.zeros(steps + 1)  # temps: array[steps+1] * [s]
-sSim = np.zeros(steps + 1)  # distance curviligne: array[steps+1] * [m]
+steps = int(tEnd / dt)       # nombre de pas de la simulation
+tSim = np.zeros(steps + 1)   # temps: array[steps+1] * [s]
+sSim = np.zeros(steps + 1)   # distance curviligne: array[steps+1] * [m]
 VsSim = np.zeros(steps + 1)  # vitesse tangentielle: array[steps+1] * [m/s]
-AsSim = np.zeros(steps + 1)  # acceleration curviligne: array[steps] * [m/s^2]
-zSim = np.zeros(steps + 1)  # coordonnée z des points de la simulation
+AsSim = np.zeros(steps + 1)  # acceleration curviligne: array[steps+1] * [m/s**2]
+zSim = np.zeros(steps + 1)   # coordonnée z des points de la simulation
 
 # valeurs initiales:
 tSim[0] = 0
 sSim[0] = 0
 VsSim[0] = 0
 
-# matrices 3 x steps qui stockent les composantes des coordonnées,
+# matrices (3 x steps) qui stockent les composantes des coordonnées,
 # vecteurs tangents et vecteurs normales des points de la simulation
 xyzMarks = np.empty((3, steps))
 tMarks = np.empty((3, steps))
@@ -55,10 +61,10 @@ for i in range(steps):
     # en fonction de l'abscisse curviligne du circuit
     path = p3d.path_at(sSim[i], (sPath, xyzPath, tPath, cPath))
 
-    tan = path[1]  # vecteur tangent
+    tan = path[1]   # vecteur tangent
     norm = path[2]  # vecteur normal
 
-    gs = -g * tan[2]  # norme de l'accélération gravitationnelle tangentielle
+    gs = -g * tan[2]      # norme de l'accélération gravitationnelle tangentielle
     gs_vector = gs * tan  # vecteur g_s
     gn = np.array((0, 0, -g)) - gs_vector  # vecteur de l'accélération gravitationnelle normale
     Gn = VsSim[i] ** 2 * norm - gn
@@ -66,9 +72,9 @@ for i in range(steps):
     As = (gs - e1 * (VsSim[i] / h) * np.linalg.norm(Gn)) / M  # accélération curviligne
 
     AsSim[i] = As
-    VsSim[i + 1] = VsSim[i] + As * dt  # on varie la vitesse curviligne suivante selon l'accélération
+    VsSim[i + 1] = VsSim[i] + As * dt          # on varie la vitesse curviligne suivante selon l'accélération
     sSim[i + 1] = sSim[i] + VsSim[i + 1] * dt  # on varie la position curviligne suivante selon la vitesse
-    tSim[i + 1] = tSim[i] + dt  # on varie le temps t suivant selon dt
+    tSim[i + 1] = tSim[i] + dt                 # on varie le temps t suivant selon dt
 
     # variables utilisées pour le graphique (coordonnées, vecteurs, etc.)
     xyz = p3d.ainterp(sSim[i], sPath, xyzPath)
@@ -85,7 +91,7 @@ for i in range(steps):
         VsSim[i:] = VsSim[i]
         tSim[i:] = tSim[i]
 
-EpSim = g * (zSim + 0.070)  # énergie potentielle spécifique [m**2/s**2]
+EpSim = g * (zSim + 0.070)    # énergie potentielle spécifique [m**2/s**2]
 EkSim = 0.5 * M * VsSim ** 2  # énergie cinétique spécifique [m**2/s**2]
 
 
