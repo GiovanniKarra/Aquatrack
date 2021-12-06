@@ -22,8 +22,7 @@ m = 0.016  # masse de la bille
 e1 = 0.000575  # coefficient de frottement linéaire [m/(m/s)]
 
 # chemin de la bille (et autres paramètres)
-# xyzPoints = np.loadtxt("looping_points.txt", unpack=True)
-xyzPoints = np.loadtxt("points_de_passage.txt", unpack=True)
+xyzPoints = np.loadtxt("points_de_passage.txt", unpack=True)  # à détailler
 sPath, xyzPath, tPath, cPath = p3d.path(xyzPoints)
 
 # paramètres pour la simulation:
@@ -42,7 +41,7 @@ tSim[0] = 0
 sSim[0] = 0
 VsSim[0] = 0
 
-# matries 3 x steps qui stockent les composantes des coordonnées,
+# matrices 3 x steps qui stockent les composantes des coordonnées,
 # vecteurs tangents et vecteurs normales des points de la simulation
 xyzMarks = np.empty((3, steps))
 tMarks = np.empty((3, steps))
@@ -71,7 +70,7 @@ for i in range(steps):
     sSim[i + 1] = sSim[i] + VsSim[i + 1] * dt  # on varie la position curviligne suivante selon la vitesse
     tSim[i + 1] = tSim[i] + dt  # on varie le temps t suivant selon dt
 
-    # variables utilisés pour le graphique (coordonnées, vecteurs, etc.)
+    # variables utilisées pour le graphique (coordonnées, vecteurs, etc.)
     xyz = p3d.ainterp(sSim[i], sPath, xyzPath)
     xyzMarks[:, i] = xyz
     cMarks[:, i] = Gn
