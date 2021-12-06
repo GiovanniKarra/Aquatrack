@@ -13,13 +13,13 @@ SIMULATION
 
 
 # Paramètres physiques:
-m = 0.016      # masse de la bille
 g = 9.81       # accélération de gravitation [m/s**2]
 b = 0.01       # écart des rails [m]
 r = 0.0079375  # rayon de la bille [m]
 h = np.sqrt(r ** 2 - b ** 2 / 4)  # hauteur du centre de la bille sur les rails [m]
 
 e1 = 0.000575  # coefficient de frottement linéaire [m/(m/s)]
+# e1 = 0.001
 
 # charge les points de passage en tant que matrice (3 x nombre de points)
 xyzPoints = np.loadtxt("points_de_passage.txt", unpack=True)
@@ -80,7 +80,7 @@ for i in range(steps):
     xyz = p3d.ainterp(sSim[i], sPath, xyzPath)
     xyzMarks[:, i] = xyz
     cMarks[:, i] = Gn
-    tMarks[:, i] = gs_vector
+    tMarks[:, i] = As * tan
 
     zSim[i] = xyz[2]
 
@@ -112,11 +112,11 @@ plt.ylabel('abscisse curviligne [m]')
 plt.xlabel('t [s]')
 plt.subplot(312)
 plt.plot(tSim, VsSim, 'b-')
-plt.ylabel('vitesse tangentielle [m/s]')
+plt.ylabel('vitesse [m/s]')
 plt.xlabel('t [s]')
 plt.subplot(313)
 plt.plot(tSim, AsSim, 'b-')
-plt.ylabel('acceleration tangentielle [m/s^2]')
+plt.ylabel('acceleration [m/s^2]')
 plt.xlabel('t [s]')
 plt.show()
 
@@ -139,7 +139,7 @@ ax.plot(xyzPath[0], xyzPath[1], xyzPath[2], 'k-', lw=0.5, label='path')
 scale = 0.2 * sPath[-1] / steps
 ax.quiver(xyzMarks[0], xyzMarks[1], xyzMarks[2],
           scale * tMarks[0], scale * tMarks[1], scale * tMarks[2],
-          color='r', linewidth=0.5, label='gs')
+          color='r', linewidth=0.5, label='As')
 ax.quiver(xyzMarks[0], xyzMarks[1], xyzMarks[2],
           scale * cMarks[0], scale * cMarks[1], scale * cMarks[2],
           color='g', linewidth=0.5, label='Gn')
