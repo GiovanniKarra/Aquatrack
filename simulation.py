@@ -13,9 +13,9 @@ SIMULATION
 
 
 # Paramètres physiques:
-g = 9.81       # accélération de gravitation [m/s**2]
-b = 0.01       # écart des rails [m]
-r = 0.0079375  # rayon de la bille [m]
+g = 9.81                          # accélération de gravitation [m/s**2]
+b = 0.01                          # écart des rails [m]
+r = 0.0079375                     # rayon de la bille [m]
 h = np.sqrt(r ** 2 - b ** 2 / 4)  # hauteur du centre de la bille sur les rails [m]
 
 e1 = 0.000575  # coefficient de frottement linéaire [m/(m/s)]
@@ -61,13 +61,13 @@ for i in range(steps):
     # en fonction de l'abscisse curviligne du circuit
     path = p3d.path_at(sSim[i], (sPath, xyzPath, tPath, cPath))
 
-    tan = path[1]   # vecteur tangent
-    norm = path[2]  # vecteur normal
+    tan = path[1]                          # vecteur tangent
+    norm = path[2]                         # vecteur normal
 
-    gs = -g * tan[2]      # norme de l'accélération gravitationnelle tangentielle
-    gs_vector = gs * tan  # vecteur g_s
+    gs = -g * tan[2]                       # norme de l'accélération gravitationnelle tangentielle
+    gs_vector = gs * tan                   # vecteur g_s
     gn = np.array((0, 0, -g)) - gs_vector  # vecteur de l'accélération gravitationnelle normale
-    Gn = VsSim[i] ** 2 * norm - gn
+    Gn = VsSim[i] ** 2 * norm - gn         # accélération normale
 
     As = (gs - e1 * (VsSim[i] / h) * np.linalg.norm(Gn)) / M  # accélération curviligne
 
@@ -76,20 +76,13 @@ for i in range(steps):
     sSim[i + 1] = sSim[i] + VsSim[i + 1] * dt  # on varie la position curviligne suivante selon la vitesse
     tSim[i + 1] = tSim[i] + dt                 # on varie le temps t suivant selon dt
 
-    # variables utilisées pour le graphique (coordonnées, vecteurs, etc.)
-    xyz = p3d.ainterp(sSim[i], sPath, xyzPath)
-    xyzMarks[:, i] = xyz
-    cMarks[:, i] = Gn
-    tMarks[:, i] = As * tan
+    # variables utilisées pour le graphique
+    xyz = p3d.ainterp(sSim[i], sPath, xyzPath)  # coordonnées du point simulé
+    xyzMarks[:, i] = xyz                        # stockage des coordonnées
+    cMarks[:, i] = Gn                           # stockage du vecteur de l'accélération normale
+    tMarks[:, i] = As * tan                     # stockage du vecteur de l'accélération curviligne
 
-    zSim[i] = xyz[2]
-
-    # si la bille dépasse le circuit, on met la même valeur aux itérations restantes
-    if sSim[i] >= sPath[-1]:
-        print(tSim[i])
-        sSim[i:] = sSim[i]
-        VsSim[i:] = VsSim[i]
-        tSim[i:] = tSim[i]
+    zSim[i] = xyz[2]                            # stockage des coordonnées z pour le calcul de l'énergie potentielle
 
 EpSim = g * (zSim + 0.070)    # énergie potentielle spécifique [m**2/s**2]
 EkSim = 0.5 * M * VsSim ** 2  # énergie cinétique spécifique [m**2/s**2]
@@ -105,43 +98,60 @@ DESSIN DES DIFFÉRENTS GRAPHIQUES
 
 
 # plot vitesses, positions, accelerations
-plt.figure()
-plt.subplot(311)
-plt.plot(tSim, sSim, 'b-')
-plt.ylabel('abscisse curviligne [m]')
-plt.xlabel('t [s]')
-plt.subplot(312)
-plt.plot(tSim, VsSim, 'b-')
-plt.ylabel('vitesse [m/s]')
-plt.xlabel('t [s]')
-plt.subplot(313)
-plt.plot(tSim, AsSim, 'b-')
-plt.ylabel('acceleration [m/s^2]')
-plt.xlabel('t [s]')
-plt.show()
+
+plt.figure()                            # création d'un plot
+
+plt.subplot(311)                        #
+plt.plot(tSim, sSim, 'b-')              # DESSIN DU GRAPHIQUE
+plt.ylabel('abscisse curviligne [m]')   # DES POSITIONS CURVILIGNES
+plt.xlabel('t [s]')                     #
+
+plt.subplot(312)                        #
+plt.plot(tSim, VsSim, 'b-')             # DESSIN DU GRAPHIQUE
+plt.ylabel('vitesse [m/s]')             # DES VITESSES
+plt.xlabel('t [s]')                     #
+
+plt.subplot(313)                        #
+plt.plot(tSim, AsSim, 'b-')             # DESSIN DU GRAPHIQUE
+plt.ylabel('acceleration [m/s^2]')      # DES ACCÉLÉRATIONS
+plt.xlabel('t [s]')                     #
+
+plt.show()                              # affichage du plot sur l'écran
+
 
 # plot énergies
-plt.figure()
-plt.plot(tSim, EpSim, 'b-', label='Ep/m')
-plt.plot(tSim, EkSim, 'r-', label='Ek/m')
-plt.plot(tSim, EkSim + EpSim, 'k-', label='E/m')
-plt.legend()
-plt.ylabel('Energy/mass [J/kg]')
-plt.xlabel('t [s]')
-plt.show()
+
+plt.figure()                                      # création d'un plot
+
+plt.plot(tSim, EpSim, 'b-', label='Ep/m')         #
+plt.plot(tSim, EkSim, 'r-', label='Ek/m')         # DESSIN DU GRAPHIQUE DE L'ÉNERGIE MÉCANIQUE
+plt.plot(tSim, EkSim + EpSim, 'k-', label='E/m')  #
+
+plt.legend()                                      #
+plt.ylabel('Energy/mass [J/kg]')                  # CRÉATION ET AFFICHAGE DE LA LÉGENDE
+plt.xlabel('t [s]')                               #
+
+plt.show()                                        # affichage du plot sur l'écran
+
 
 # plot circuit
-fig = plt.figure()
-ax = fig.add_subplot(projection='3d')
-ax.set_box_aspect(np.ptp(xyzPath, axis=1))
-ax.plot(xyzPoints[0], xyzPoints[1], xyzPoints[2], 'bo', label='points', markersize=1)
-ax.plot(xyzPath[0], xyzPath[1], xyzPath[2], 'k-', lw=0.5, label='path')
-scale = 0.2 * sPath[-1] / steps
-ax.quiver(xyzMarks[0], xyzMarks[1], xyzMarks[2],
-          scale * tMarks[0], scale * tMarks[1], scale * tMarks[2],
-          color='r', linewidth=0.5, label='As')
-ax.quiver(xyzMarks[0], xyzMarks[1], xyzMarks[2],
-          scale * cMarks[0], scale * cMarks[1], scale * cMarks[2],
-          color='g', linewidth=0.5, label='Gn')
-ax.legend()
-plt.show()
+
+fig = plt.figure()                                                  # création d'un plot
+
+ax = fig.add_subplot(projection='3d')                               #
+ax.set_box_aspect(np.ptp(xyzPath, axis=1))                          #
+ax.plot(xyzPoints[0], xyzPoints[1], xyzPoints[2],                   #
+        'bo', label='points', markersize=1)                         #
+ax.plot(xyzPath[0], xyzPath[1], xyzPath[2],                         #
+        'k-', lw=0.5, label='path')                                 # DESSIN DU CIRCUIT EN 3D
+scale = 0.2 * sPath[-1] / steps                                     # AVEC LES VECTEURS D'ACCÉLÉRATION CURVILIGNE
+ax.quiver(xyzMarks[0], xyzMarks[1], xyzMarks[2],                    # ET ACCÉLÉRATION NORMALE
+          scale * tMarks[0], scale * tMarks[1],                     #
+          scale * tMarks[2], color='r', linewidth=0.5, label='As')  #
+ax.quiver(xyzMarks[0], xyzMarks[1], xyzMarks[2],                    #
+          scale * cMarks[0], scale * cMarks[1], scale * cMarks[2],  #
+          color='g', linewidth=0.5, label='Gn')                     #
+
+ax.legend()                                                         # affichage de la légende
+
+plt.show()                                                          # affichage du plot
