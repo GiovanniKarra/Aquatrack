@@ -19,7 +19,6 @@ r = 0.0079375                     # rayon de la bille [m]
 h = np.sqrt(r ** 2 - b ** 2 / 4)  # hauteur du centre de la bille sur les rails [m]
 
 e1 = 0.000575  # coefficient de frottement linéaire [m/(m/s)]
-# e1 = 0.001
 
 # charge les points de passage en tant que matrice (3 x nombre de points)
 xyzPoints = np.loadtxt("points_de_passage.txt", unpack=True)
